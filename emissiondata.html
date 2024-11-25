@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emission Analytics & Reporting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        #summary {
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            margin: 10px 0;
+        }
+
+        #status {
+            font-weight: bold;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .chart-container canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 200px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .criteria {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .criteria h2 {
+            color: #333;
+        }
+
+        .criteria ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .criteria ul li {
+            margin-bottom: 10px;
+        }
+
+        .download-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Emission Analytics & Reporting</h1>
+
+        <!-- Emission Levels Summary -->
+        <div id="summary">
+            <h2>Summary of Emission Levels</h2>
+            <p class="summary-item">CO Level: <span id="coLevel"></span> ppm</p>
+            <p class="summary-item">NOx Level: <span id="noxLevel"></span> ppm</p>
+            <p class="summary-item">HC Level: <span id="hcLevel"></span> ppm</p>
+            <p class="summary-item">Vehicle Status: <span id="status"></span></p>
+        </div>
+
+        <!-- Pass/Fail Criteria -->
+        <div class="criteria">
+            <h2>Pass/Fail Criteria</h2>
+            <ul>
+                <li>CO must be below <strong>200 ppm</strong></li>
+                <li>NOx must be below <strong>150 ppm</strong></li>
+                <li>HC must be below <strong>100 ppm</strong></li>
+            </ul>
+            <p>Weekly checks are done for emission trends, and vehicles that fail the criteria need to be serviced within one week.</p>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-container">
+            <!-- Bar Chart for Emission Levels -->
+            <canvas id="barChart"></canvas>
+            <!-- Line Chart for Weekly Emission Trend -->
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <!-- Download Button -->
+        <button class="download-btn" id="downloadBtn">Download Report as PDF</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        // Function to generate random values within a given range
+        const randomValue = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        // Random emission values for demonstration
+        const coLevel = randomValue(100, 300);
+        const noxLevel = randomValue(50, 200);
+        const hcLevel = randomValue(10, 150);
+
+        // Emission standard thresholds
+        const coThreshold = 200;
+        const noxThreshold = 150;
+        const hcThreshold = 100;
+
+        // Set summary text
+        document.getElementById('coLevel').textContent = coLevel;
+        document.getElementById('noxLevel').textContent = noxLevel;
+        document.getElementById('hcLevel').textContent = hcLevel;
+
+        // Determine pass/fail status
+        const status = (coLevel <= coThreshold && noxLevel <= noxThreshold && hcLevel <= hcThreshold) ? 'PASS' : 'FAIL';
+        const statusColor = (status === 'PASS') ? 'green' : 'red';
+        document.getElementById('status').textContent = status;
+        document.getElementById('status').style.color = statusColor;
+
+        // Bar chart for current emission levels
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['CO', 'NOx', 'HC'],
+                datasets: [{
+                    label: 'Emission Levels (ppm)',
+                    data: [coLevel, noxLevel, hcLevel],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(75, 192, 192, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 300
+                    }
+                }
+            }
+        });
+
+        // Line chart for weekly emission trend
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        const weeklyEmissions = Array.from({ length: 7 }, () => randomValue(100, 300)); // Random weekly values
+        const lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'CO Levels (ppm)',
+                    data: weeklyEmissions,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 300
+                    }
+                }
+            }
+        });
+
+        // Download PDF function
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add title
+            doc.text("Emission Analytics & Reporting", 10, 10);
+
+            // Add Summary
+            doc.text(`CO Level: ${coLevel} ppm`, 10, 20);
+            doc.text(`NOx Level: ${noxLevel} ppm`, 10, 30);
+            doc.text(`HC Level: ${hcLevel} ppm`, 10, 40);
+            doc.text(`Vehicle Status: ${status}`, 10, 50);
+
+            // Add Pass/Fail Criteria
+            doc.text("Pass/Fail Criteria:", 10, 60);
+            doc.text("CO must be below 200 ppm", 10, 70);
+            doc.text("NOx must be below 150 ppm", 10, 80);
+            doc.text("HC must be below 100 ppm", 10, 90);
+
+            // Save PDF
+            doc.save('emission-report.pdf');
+        });
+    </script>
+
+</body>
+</html>

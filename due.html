@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Maintenance Checkup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Vehicle Maintenance Checkup Due to Smoke Emission</h1>
+        
+        <label for="vehicleId">Vehicle ID:</label>
+        <input type="text" id="vehicleId" placeholder="Enter Vehicle ID" required>
+
+        <label for="kmDriven">Kilometers Driven:</label>
+        <input type="number" id="kmDriven" placeholder="Enter Kilometers Driven" required>
+
+        <label for="smokeLevel">Smoke Emission Level (ppm):</label>
+        <input type="number" id="smokeLevel" placeholder="Enter Smoke Emission Level" required>
+
+        <label for="gasLevel">Gas Level (ppm):</label>
+        <input type="number" id="gasLevel" placeholder="Enter Gas Level" required>
+
+        <label for="travelTime">Travel Time (in hours):</label>
+        <input type="number" id="travelTime" placeholder="Enter Travel Time" required>
+
+        <label for="checkUpDate">Local Check-up Date:</label>
+        <input type="date" id="checkUpDate" required>
+
+        <button id="checkBtn">Check Maintenance Recommendation</button>
+
+        <div class="result" id="result" style="display: none;">
+            <h2>Maintenance Recommendation:</h2>
+            <p id="recommendation"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('checkBtn').addEventListener('click', function () {
+            const vehicleId = document.getElementById('vehicleId').value;
+            const kmDriven = parseInt(document.getElementById('kmDriven').value);
+            const smokeLevel = parseInt(document.getElementById('smokeLevel').value);
+            const gasLevel = parseInt(document.getElementById('gasLevel').value);
+            const travelTime = parseInt(document.getElementById('travelTime').value);
+            const checkUpDate = document.getElementById('checkUpDate').value;
+
+            let recommendation = "";
+
+            // Conditions for recommendations
+            if (smokeLevel > 1000 || gasLevel > 300) {
+                recommendation = `Vehicle ID: ${vehicleId} requires immediate maintenance due to excessive smoke and gas emissions!`;
+            } else if (smokeLevel > 500 || gasLevel > 150) {
+                recommendation = `Vehicle ID: ${vehicleId} should be serviced soon. Smoke or gas levels are above the acceptable range.`;
+            } else if (kmDriven > 10000) {
+                recommendation = `Vehicle ID: ${vehicleId} has exceeded 10,000 km. Please schedule a routine check-up.`;
+            } else {
+                recommendation = `Vehicle ID: ${vehicleId} is within the acceptable emission levels. No immediate action is needed.`;
+            }
+
+            // Additional check-up date recommendation
+            recommendation += ` Please ensure a local check-up by ${checkUpDate}.`;
+
+            document.getElementById('recommendation').textContent = recommendation;
+            document.getElementById('result').style.display = 'block';
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air Quality Monitoring</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+    h1, h3 {
+      text-align: center;
+    }
+    table {
+      width: 90%;
+      border-collapse: collapse;
+      margin: auto;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+    }
+    #chartContainer {
+      width: 800px;
+      height: 400px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Air Quality Monitoring</h1>
+
+  <!-- Table for displaying data -->
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>S.NO</th>
+        <th>Time</th>
+        <th>CO2 (ppm)</th>
+        <th>NH3 (ppm)</th>
+        <th>CO (ppm)</th>
+        <th>Temperature (°C)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be populated dynamically -->
+    </tbody>
+  </table>
+
+  <!-- Download Button -->
+  <button onclick="downloadExcel()">Download Data</button>
+
+  <!-- Chart.js Graph -->
+  <div id="chartContainer">
+    <canvas id="aqiChart"></canvas>
+  </div>
+  <h3>Graph Representation</h3>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCxhIhIzYEif67oox78j4Ok_uh3SnSjPjI",
+        authDomain: "kg-mini.firebaseapp.com",
+        databaseURL: "https://kg-mini-default-rtdb.firebaseio.com",
+        projectId: "kg-mini",
+        storageBucket: "kg-mini.firebasestorage.app",
+        messagingSenderId: "429049512078",
+        appId: "1:429049512078:web:9e4c19daac238f995009df",
+        measurementId: "G-483EF0PZNZ"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Reference to database path
+    const airQualityRef = database.ref("AirQuality");
+
+    let tableData = [];
+    const tableBody = document.querySelector("#dataTable tbody");
+
+    // Function to fetch data and update the table
+    function fetchData() {
+      airQualityRef.on('value', function(snapshot) {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const time = new Date().toLocaleTimeString();
+          const newRow = {
+            Time: time,
+            CO2: data.CO2 || 0,
+            NH3: data.NH3 || 0,
+            CO: data.CO || 0,
+            Temperature: data.Temperature || 0
+          };
+
+          // Add new data to tableData
+          tableData.push(newRow);
+
+          // Limit tableData to the latest 4 rows
+          if (tableData.length > 4) {
+            tableData.shift();
+          }
+
+          // Clear and rebuild the table
+          tableBody.innerHTML = "";
+          tableData.forEach((row, index) => {
+            const tableRow = document.createElement("tr");
+            tableRow.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${row.Time}</td>
+              <td>${row.CO2}</td>
+              <td>${row.NH3}</td>
+              <td>${row.CO}</td>
+              <td>${row.Temperature}</td>
+            `;
+            tableBody.appendChild(tableRow);
+          });
+
+          // Update the chart
+          updateChart();
+        } else {
+          console.error("No data available in the database.");
+        }
+      });
+    }
+
+    fetchData();
+
+    // Download data as Excel
+    function downloadExcel() {
+      const worksheet = XLSX.utils.json_to_sheet(tableData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "AQI Data");
+      XLSX.writeFile(workbook, "AirQualityData.xlsx");
+    }
+
+    // Chart.js Configuration
+    const ctx = document.getElementById("aqiChart").getContext("2d");
+    const aqiChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          { label: "CO2 (ppm)", data: [], borderColor: "brown", fill: false, tension: 0.4 },
+          { label: "NH3 (ppm)", data: [], borderColor: "green", fill: false, tension: 0.4 },
+          { label: "CO (ppm)", data: [], borderColor: "red", fill: false, tension: 0.4 },
+          { label: "Temperature (°C)", data: [], borderColor: "blue", fill: false, tension: 0.4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: "Time" } },
+          y: { title: { display: true, text: "Values" } }
+        }
+      }
+    });
+
+    function updateChart() {
+      const labels = tableData.map(row => row.Time);
+      const co2 = tableData.map(row => row.CO2);
+      const nh3 = tableData.map(row => row.NH3);
+      const co = tableData.map(row => row.CO);
+      const temperature = tableData.map(row => row.Temperature);
+
+      aqiChart.data.labels = labels;
+      aqiChart.data.datasets[0].data = co2;
+      aqiChart.data.datasets[1].data = nh3;
+      aqiChart.data.datasets[2].data = co;
+      aqiChart.data.datasets[3].data = temperature;
+      aqiChart.update();
+    }
+  </script>
+</body>
+</html>

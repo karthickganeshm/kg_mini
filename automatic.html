@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Emission & Fitness Certificate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 40%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"], input[type="file"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #output {
+            margin-top: 20px;
+            color: green;
+        }
+
+        #certificate {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vehicle Emission Data & Fitness Certificate</h1>
+        <form id="emissionForm">
+            <label for="vehicleNumber">Vehicle Number:</label>
+            <input type="text" id="vehicleNumber" name="vehicleNumber" required>
+
+            <label for="vehicleModel">Vehicle Model:</label>
+            <input type="text" id="vehicleModel" name="vehicleModel" required>
+
+            <label for="emissionCO">CO Emission Level (ppm):</label>
+            <input type="number" id="emissionCO" name="emissionCO" required>
+
+            <label for="emissionNOx">NOx Emission Level (ppm):</label>
+            <input type="number" id="emissionNOx" name="emissionNOx" required>
+
+            <label for="emissionHC">HC Emission Level (ppm):</label>
+            <input type="number" id="emissionHC" name="emissionHC" required>
+
+            <label for="emissionReport">Upload Emission Report (PDF):</label>
+            <input type="file" id="emissionReport" name="emissionReport" accept=".pdf" required>
+
+            <label for="email">Email (for FC Certificate):</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Submit</button>
+        </form>
+        <div id="output"></div>
+
+        <div id="certificate">
+            <h2>Fitness Certificate Generated!</h2>
+            <button id="downloadPdf">Download Fitness Certificate (PDF)</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.getElementById('emissionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const vehicleNumber = document.getElementById('vehicleNumber').value;
+            const vehicleModel = document.getElementById('vehicleModel').value;
+            const emissionCO = document.getElementById('emissionCO').value;
+            const emissionNOx = document.getElementById('emissionNOx').value;
+            const emissionHC = document.getElementById('emissionHC').value;
+            const email = document.getElementById('email').value;
+
+            // Basic validation
+            if (!vehicleNumber || !vehicleModel || !emissionCO || !emissionNOx || !emissionHC || !email) {
+                alert("All fields are required!");
+                return;
+            }
+
+            // Output submission success message
+            const output = document.getElementById('output');
+            output.textContent = `Vehicle ${vehicleNumber} emission data submitted successfully!`;
+
+            // Show certificate section after submission
+            document.getElementById('certificate').style.display = 'block';
+        });
+
+        // Function to generate PDF
+        document.getElementById('downloadPdf').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const vehicleNumber = document.getElementById('vehicleNumber').value;
+            const vehicleModel = document.getElementById('vehicleModel').value;
+            const emissionCO = document.getElementById('emissionCO').value;
+            const emissionNOx = document.getElementById('emissionNOx').value;
+            const emissionHC = document.getElementById('emissionHC').value;
+
+            // Create PDF content
+            doc.setFontSize(16);
+            doc.text('Fitness Certificate', 105, 20, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`Vehicle Number: ${vehicleNumber}`, 20, 40);
+            doc.text(`Vehicle Model: ${vehicleModel}`, 20, 50);
+            doc.text(`CO Emission Level (ppm): ${emissionCO}`, 20, 60);
+            doc.text(`NOx Emission Level (ppm): ${emissionNOx}`, 20, 70);
+            doc.text(`HC Emission Level (ppm): ${emissionHC}`, 20, 80);
+            doc.text('Status: PASS', 20, 90);  // Assuming all levels passed
+
+            // Save the PDF
+            doc.save(`${vehicleNumber}_Fitness_Certificate.pdf`);
+        });
+    </script>
+</body>
+</html>
